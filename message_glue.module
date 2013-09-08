@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_comment_insert().
+ */
+function message_glue_comment_insert($comment) {
+  $message = message_create('comment_insert', array('uid' => $comment->uid));
+  $wrapper = entity_metadata_wrapper('message', $message);
+  // There will be probably a reference field to the comment on the message itself.
+  $wrapper->field_comment_ref->set($comment);
+
+  // Let Message-subscribe save and send notifications.
+  message_subscribe_send_message('comment', $comment, $message);
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function message_glue_node_insert($node) {
+  // Save the message and assign it to the user realm. Since another user,
+  // usually an admin might create the node, but populate the author field
+  // with another user, we make sure the user is populated with the
+  // node's author, instead of the acting user (although in most cases it
+  // would be the same user).
+  $message = message_create('create_node', array('uid' => $node->uid));
+  // Save reference to the node in the node reference field, and the
+  // "publish" state (i.e. if the node is published or unpublished).
+  $wrapper = entity_metadata_wrapper('message', $message);
+  $wrapper->field_node_ref->set($node);
+  $wrapper->field_published->set($node->status);
+  $wrapper->save();
+
+  // Let Message-subscribe save and send notifications.
+  message_subscribe_send_message('node', $node, $message);
+}

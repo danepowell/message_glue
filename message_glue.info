@@ -1,0 +1,4 @@
+name = Message glue
+description = Generate messages on new comments
+core = 7.x
+
